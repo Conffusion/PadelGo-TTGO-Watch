@@ -1,0 +1,10 @@
+Parking
+=======
+
+De build in Windows faalt met fout:
+
+  xtensa-esp32-elf-g++: error: CreateProcess: No such file or directory
+  *** [.pio\build\t-watch2020-v3\firmware.elf] Error 1
+
+Volgens https://github.com/d03n3rfr1tz3/TTGO.T-Watch.2020 is dit te wijten aan teveel apps.
+Deze parking folder bevat een copy van de verwijderde apps.
