@@ -9,6 +9,8 @@
     void enter_schema_repeat_min_event_cb( lv_obj_t * obj, lv_event_t event );
     void enter_schema_repeat_plus_event_cb( lv_obj_t * obj, lv_event_t event );
 
+    void enter_run_time_screen_event_cb( lv_obj_t * obj, lv_event_t event );
+    void exit_run_time_screen_event_cb( lv_obj_t * obj, lv_event_t event );
     void enter_run_time_action_event_cb( lv_obj_t * obj, lv_event_t event );
 
     void enter_runcoach_app_reset_event_cb( lv_obj_t * obj, lv_event_t event );
@@ -26,7 +28,7 @@
     extern lv_obj_t *run_time_action_label;
     extern lv_obj_t *run_time_clock_label;
     extern lv_obj_t *run_time_action_btn;
-    
+
     /**
      * @brief setup main runcoach main tile
      * 

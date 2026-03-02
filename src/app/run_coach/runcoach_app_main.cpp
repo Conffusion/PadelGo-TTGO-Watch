@@ -1,21 +1,6 @@
-/*
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- */
-
 #include "config.h"
 #include <TTGO.h>
+#include "hardware/motor.h"
 
 #include "runcoach_app.h"
 #include "runcoach_app_main.h"
@@ -28,8 +13,84 @@
 #include "gui/statusbar.h"
 
 #include <hardware/ble/gadgetbridge.h>
+static lv_task_t *runcoach_runtime_task = NULL;
 
 static short TIME_INCREASE=30;
+
+// Forward declaration
+void runcoach_runtime_update_task(lv_task_t *task);
+
+static short remaining_time() {
+    short remaining_seconds = 0;
+    if(runTimeSchema.currSectionIdx>=0) {
+        time_t now = time(0);
+        double dif_seconds = difftime(now,runTimeSchema.currSectionStart);
+        remaining_seconds = runTimeSchema.sections[runTimeSchema.currSectionIdx].duration - static_cast<short>(dif_seconds);
+    } else {
+        if(runTimeSchema.nrOfSections>0) {
+            remaining_seconds = runTimeSchema.sections[0].duration;
+        }
+    }
+    return remaining_seconds;
+}
+
+/**
+ * Is called every second when the run schema is running to update the remaining time label.
+ */
+void runcoach_runtime_update_task(lv_task_t *task) {
+    runTimeSchema.remainingTime = remaining_time();
+    if(runTimeSchema.status == RUNNING && runTimeSchema.remainingTime<=0) {
+        // move to next section
+        runTimeSchema.currSectionIdx++;
+        if(runTimeSchema.currSectionIdx>=runTimeSchema.nrOfSections) {
+            // schema finished
+            runTimeSchema.currSectionIdx=-1;
+            runTimeSchema.status=STOPPED;
+            motor_vibe(300);
+            runcoach_update_labels();
+            if(task) {
+                lv_task_del(task);
+            }
+            runcoach_runtime_task = NULL;
+            return;
+        } else {
+            // start next section
+            runTimeSchema.currSectionStart=time(0);
+            motor_vibe(100);
+        }
+    }
+    runcoach_update_labels();
+}
+
+static void runcoach_stop_runtime_task() {
+    if(runcoach_runtime_task) {
+        lv_task_del(runcoach_runtime_task);
+        runcoach_runtime_task = NULL;
+        Serial.println("Runtime task stopped");
+    }
+}
+static void runcoach_start_runtime_task() {
+    if(!runcoach_runtime_task) {
+        Serial.println("Creating runtime task");
+        runcoach_runtime_task = lv_task_create(runcoach_runtime_update_task, 1000, LV_TASK_PRIO_MID, NULL);
+    }
+}
+
+void enter_run_time_screen_event_cb( lv_obj_t * obj, lv_event_t event ) {
+    switch( event ) {
+        case( LV_EVENT_CLICKED ):
+            runcoach_show_runtime_screen();
+            break;
+    }
+}
+
+void exit_run_time_screen_event_cb( lv_obj_t * obj, lv_event_t event ) {
+    switch( event ) {
+        case( LV_EVENT_CLICKED ):
+            runcoach_show_main_screen();
+            break;
+    }
+}
 
 void enter_schema_run_min_event_cb( lv_obj_t * obj, lv_event_t event ) {
     switch( event ) {
@@ -91,12 +152,15 @@ void enter_run_time_action_event_cb( lv_obj_t * obj, lv_event_t event ) {
             switch(runTimeSchema.status) {
                 case(STOPPED):
                     runcoach_launch_schema();
+                    runcoach_start_runtime_task();
                     break;
                 case (RUNNING):
                     runcoach_pauze_schema();
+                    runcoach_stop_runtime_task();
                     break;
                 case (PAUZING):
                     runcoach_continue_schema();
+                    runcoach_start_runtime_task();
                     break;
             };
             runcoach_update_labels();
@@ -111,6 +175,7 @@ void runcoach_app_main_setup( uint32_t tile_num ) {
 void enter_runcoach_app_reset_event_cb( lv_obj_t * obj, lv_event_t event ) {
     switch( event ) {
         case( LV_EVENT_CLICKED ):       
+            runcoach_stop_runtime_task();
             runcoach_model_init();
             runcoach_update_labels();
     }
@@ -119,6 +184,9 @@ void enter_runcoach_app_reset_event_cb( lv_obj_t * obj, lv_event_t event ) {
 void exit_runcoach_app_main_event_cb( lv_obj_t * obj, lv_event_t event ) {
     switch( event ) {
         case( LV_EVENT_CLICKED ):
+            runcoach_stop_runtime_task();
+            // Reset model to default values before exiting
+            runcoach_model_init();
             mainbar_jump_back();
             break;
     }

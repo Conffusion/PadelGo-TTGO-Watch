@@ -31,6 +31,7 @@ typedef enum {
 /* A section describes an action to perform for a certain period. */
 typedef struct  {
   Action action;
+  char* actionLabel;
   short duration;
 } Section;
 
@@ -39,6 +40,10 @@ typedef struct {
   Section* sections;
   RunTimeStatus status;
   short currSectionIdx;
+  short nrOfSections;
+  /* Remaining time in the current section expressed in seconds. */
+  short remainingTime;
+
   /* The time the current section started to calculate remaining time. */
   time_t currSectionStart;
   /* The time the current section was pauzed. */
