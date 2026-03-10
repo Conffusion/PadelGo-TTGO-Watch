@@ -71,8 +71,8 @@ inline const char* to_action(Action action) {
     }
 }
 
-
 void runcoach_model_init();
+void runcoach_appendRunSchema();
 void runcoach_launch_schema();
 void runcoach_pauze_schema();
 void runcoach_continue_schema();

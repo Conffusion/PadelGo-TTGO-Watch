@@ -10,7 +10,6 @@
 #include "gui/widget_factory.h"
 #include "lvgl.h"
 
-
 lv_obj_t *schema_run_min_btn=NULL;
 lv_obj_t *schema_run_plus_btn=NULL;
 lv_obj_t *schema_run_time_label=NULL;
@@ -20,6 +19,8 @@ lv_obj_t *schema_walk_time_label=NULL;
 lv_obj_t *schema_repeat_min_btn=NULL;
 lv_obj_t *schema_repeat_plus_btn=NULL;
 lv_obj_t *schema_repeat_value_label=NULL;
+
+lv_obj_t *schema_sections_value_label=NULL;
 lv_obj_t *run_time_action_label=NULL;
 lv_obj_t *run_time_clock_label=NULL;
 lv_obj_t *run_time_action_btn=NULL;
@@ -65,92 +66,96 @@ static void runcoach_initialize_styles(uint32_t tile_num) {
     lv_style_set_border_opa(&transparent_style, LV_STATE_DEFAULT, LV_OPA_TRANSP);
 }
 
-static void schema_run_bar_setup(lv_obj_t * parent) {
+// Loop   <-> [00:00] <+>
+static void schema_run_bar_setup(lv_obj_t * parent, int height) {
     lv_obj_t * schema_run_container = wf_add_container(parent, LV_LAYOUT_PRETTY_MID, LV_FIT_PARENT, LV_FIT_TIGHT, false);
     lv_obj_align(schema_run_container, NULL, LV_ALIGN_IN_TOP_MID, 0, 0);
-    lv_obj_t * schema_run_label = wf_add_label(schema_run_container, "Run");
-    lv_obj_set_width(schema_run_label, LV_HOR_RES/4);
+    lv_obj_t * schema_run_label = wf_add_label(schema_run_container, "R");
+    lv_obj_add_style(schema_run_label, LV_LABEL_PART_MAIN, &medium_label_style);
 
-    schema_run_min_btn = wf_add_button_c(schema_run_container,"-",LV_HOR_RES/5, LV_VER_RES/5, enter_schema_run_min_event_cb);
+    schema_run_min_btn = wf_add_button_c(schema_run_container,"-",LV_HOR_RES/7, height, enter_schema_run_min_event_cb);
     lv_obj_add_style(schema_run_min_btn, LV_LABEL_PART_MAIN, &medium_label_style);
-    lv_obj_add_style(schema_run_min_btn, LV_BTN_PART_MAIN, &transparent_style);
 
     schema_run_time_label = wf_add_label(schema_run_container, "00:00" );
-    lv_obj_set_width(schema_run_time_label, LV_HOR_RES/4);
+    lv_obj_add_style(schema_run_time_label, LV_LABEL_PART_MAIN, &medium_label_style);
 
-    schema_run_plus_btn = wf_add_button_c(schema_run_container,"+",LV_HOR_RES/5, LV_VER_RES/5, enter_schema_run_plus_event_cb);
+    schema_run_plus_btn = wf_add_button_c(schema_run_container,"+",LV_HOR_RES/7, height, enter_schema_run_plus_event_cb);
     lv_obj_add_style(schema_run_plus_btn, LV_LABEL_PART_MAIN, &medium_label_style);
-    lv_obj_add_style(schema_run_plus_btn, LV_BTN_PART_MAIN, &transparent_style);
 }
 
-static void schema_walk_bar_setup(lv_obj_t * parent) {
+// Stap   <-> [00:00] <+>
+static void schema_walk_bar_setup(lv_obj_t * parent, int height) {
     lv_obj_t * schema_walk_container = wf_add_container(parent, LV_LAYOUT_PRETTY_MID, LV_FIT_PARENT, LV_FIT_TIGHT, false);
     lv_obj_align(schema_walk_container, NULL, LV_ALIGN_IN_TOP_MID, 0, 0);
-    lv_obj_t * walk_label = wf_add_label(schema_walk_container, "Walk");
-    lv_obj_set_width(walk_label, LV_HOR_RES/4);
-
-    schema_walk_min_btn = wf_add_button_c(schema_walk_container,"-",LV_HOR_RES/5, LV_VER_RES/5, enter_schema_walk_min_event_cb);
+    lv_obj_t * schema_walk_label = wf_add_label(schema_walk_container, "W");
+    lv_obj_add_style(schema_walk_label, LV_LABEL_PART_MAIN, &medium_label_style);
+    
+    schema_walk_min_btn = wf_add_button_c(schema_walk_container,"-",LV_HOR_RES/8, height, enter_schema_walk_min_event_cb);
     lv_obj_add_style(schema_walk_min_btn, LV_LABEL_PART_MAIN, &medium_label_style);
-    lv_obj_add_style(schema_walk_min_btn, LV_BTN_PART_MAIN, &transparent_style);
 
     schema_walk_time_label = wf_add_label(schema_walk_container, "00:00" );
-    lv_obj_set_width(schema_walk_time_label, LV_HOR_RES/4);
-
-    schema_walk_plus_btn = wf_add_button_c(schema_walk_container,"+",LV_HOR_RES/5, LV_VER_RES/5, enter_schema_walk_plus_event_cb);
+    lv_obj_set_width(schema_walk_time_label, LV_HOR_RES/5);
+    lv_obj_add_style(schema_walk_time_label, LV_LABEL_PART_MAIN, &medium_label_style);
+    
+    schema_walk_plus_btn = wf_add_button_c(schema_walk_container,"+",LV_HOR_RES/7, height, enter_schema_walk_plus_event_cb);
     lv_obj_add_style(schema_walk_plus_btn, LV_LABEL_PART_MAIN, &medium_label_style);
-    lv_obj_add_style(schema_walk_plus_btn, LV_BTN_PART_MAIN, &transparent_style);
 }
 
-static void schema_repeat_bar_setup(lv_obj_t * parent) {
+// Herhaal   <-> [  0] <+>
+static void schema_repeat_bar_setup(lv_obj_t * parent, int height) {
     lv_obj_t * schema_repeat_container = wf_add_container(parent, LV_LAYOUT_PRETTY_MID, LV_FIT_PARENT, LV_FIT_TIGHT, false);
     lv_obj_align(schema_repeat_container, NULL, LV_ALIGN_IN_TOP_MID, 0, 0);
-    lv_obj_t * schema_repeat_label = wf_add_label(schema_repeat_container, "Repeat");
-    lv_obj_set_width(schema_repeat_label, LV_HOR_RES/4);
+    lv_obj_t * schema_repeat_label = wf_add_label(schema_repeat_container, "X");
+    lv_obj_add_style(schema_repeat_label, LV_LABEL_PART_MAIN, &medium_label_style);
 
-    schema_repeat_min_btn = wf_add_button_c(schema_repeat_container,"-",LV_HOR_RES/5, LV_VER_RES/5, enter_schema_repeat_min_event_cb);
+    schema_repeat_min_btn = wf_add_button_c(schema_repeat_container,"-",LV_HOR_RES/7, height, enter_schema_repeat_min_event_cb);
     lv_obj_add_style(schema_repeat_min_btn, LV_LABEL_PART_MAIN, &medium_label_style);
-    lv_obj_add_style(schema_repeat_min_btn, LV_BTN_PART_MAIN, &transparent_style);
 
     schema_repeat_value_label = wf_add_label(schema_repeat_container, "0" );
-    lv_obj_set_width(schema_repeat_label, LV_HOR_RES/4);
+    lv_obj_add_style(schema_repeat_value_label, LV_LABEL_PART_MAIN, &medium_label_style);
 
-    schema_repeat_plus_btn = wf_add_button_c(schema_repeat_container,"+",LV_HOR_RES/5, LV_VER_RES/5, enter_schema_repeat_plus_event_cb);
+    schema_repeat_plus_btn = wf_add_button_c(schema_repeat_container,"+",LV_HOR_RES/7, height, enter_schema_repeat_plus_event_cb);
     lv_obj_add_style(schema_repeat_plus_btn, LV_LABEL_PART_MAIN, &medium_label_style);
-    lv_obj_add_style(schema_repeat_plus_btn, LV_BTN_PART_MAIN, &transparent_style);
+}
+
+// <Exit> <+> <Go (0)>
+static void schema_button_bar_setup(lv_obj_t * parent) {
+    lv_obj_t * schema_buttonbar_container = wf_add_container(parent, LV_LAYOUT_PRETTY_MID, LV_FIT_PARENT, LV_FIT_TIGHT, false);
+    lv_obj_align(schema_buttonbar_container, NULL, LV_ALIGN_IN_TOP_MID, 0, 0);
+    wf_add_exit_button(schema_buttonbar_container, exit_runcoach_app_main_event_cb);
+    wf_add_add_button(schema_buttonbar_container, enter_schema_add_event_cb);
+    run_time_open_btn = wf_add_button_c(schema_buttonbar_container,"Go (0)",LV_HOR_RES/4,LV_VER_RES/6,enter_run_time_screen_event_cb);
+    runcoach_set_run_time_open_btn_status(DISABLED);
 }
 
 /*
-    ______________________________
-    |        |     |       |     |
-    | Run    |  -  | 00:00 |  +  | // run bar     \
-    |________|_____|_______|_____|                 \
-    |        |     |       |     |                  \
-    | Walk   |  -  | 00:00 |  +  | // Walk bar       | Schema Bar
-    |________|_____|_______|_____|                  /
-    |        |     |       |     |                 /
-    | Repeat |  -  |     0 |  +  | // Repeat bar  /
-    |________|_____|_______|_____|
-    |   <Setup>          <exit>  |
-    |____________________________|
+    _______________________________
+    |         |     |       |     |
+    | Loop    |  -  | 00:00 |  +  | // run bar     \
+    |_________|_____|_______|_____|                 \
+    |         |     |       |     |                  \
+    | Stap    |  -  | 00:00 |  +  | // Walk bar       | Schema 
+    |_________|_____|_______|_____|                  /
+    |         |     |       |     |                 /
+    | Herhaal |  -  |     0 |  +  | // Repeat bar  /
+    |_________|_____|_______|_____|
+    |  <Exit>   <+>      <Go (0)> | // schema buttonbar
+    |_____________________________|
 
 */
 static void schema_setup(lv_obj_t * parent) {
+    int height = LV_VER_RES/8;
     lv_obj_t * schema_container = wf_add_container(parent, LV_LAYOUT_PRETTY_MID, LV_FIT_PARENT, LV_FIT_TIGHT, false);
     lv_obj_align(schema_container, NULL, LV_ALIGN_IN_TOP_LEFT, 0, 0 );
-    schema_run_bar_setup(schema_container);
-    schema_walk_bar_setup(schema_container);
-    schema_repeat_bar_setup(schema_container);
+    schema_run_bar_setup(schema_container, height);
+    schema_walk_bar_setup(schema_container, height);
+    schema_repeat_bar_setup(schema_container, height);
+    schema_button_bar_setup(schema_container);
 }
 
-static void run_time_bar_setup(lv_obj_t * parent) {
-    lv_obj_t * run_time_container = wf_add_container(parent, LV_LAYOUT_PRETTY_MID, LV_FIT_PARENT, LV_FIT_TIGHT, false);
-    lv_obj_align(run_time_container, NULL, LV_ALIGN_IN_TOP_LEFT, 0, 0 );
-    run_time_open_btn = wf_add_button_c(run_time_container,"Setup",LV_HOR_RES/3 - 8,LV_VER_RES/5,enter_run_time_screen_event_cb);
-   // wf_add_button_c(run_time_container,"Exit",LV_HOR_RES/3 - 8,LV_VER_RES/5,exit_runcoach_app_main_event_cb);
-    wf_add_exit_button(run_time_container, exit_runcoach_app_main_event_cb);
-}
+
 /*
-    ___________________
+     ___________________
     |      <action>    |
     |                  |
     |      00:00       |
@@ -191,6 +196,11 @@ void runcoach_update_labels() {
     to_time_label(schemaDef.walkTime,walkDurationLabel);
     lv_label_set_text(schema_walk_time_label, walkDurationLabel);
     lv_label_set_text_fmt(schema_repeat_value_label,"%d",schemaDef.repeat);
+    if(runTimeSchema.nrOfSections > 0) {
+        runcoach_set_run_time_open_btn_status(true);
+    } else {
+        runcoach_set_run_time_open_btn_status(false);
+    }
     if(run_time_action_label && run_time_clock_label && run_time_action_btn) {
         if(runTimeSchema.currSectionIdx>=0 && runTimeSchema.sections != nullptr) {
             lv_label_set_text(run_time_action_label, runTimeSchema.sections[runTimeSchema.currSectionIdx].actionLabel);
@@ -222,11 +232,31 @@ void runcoach_show_main_screen() {
     }
 }
 
+void runcoach_update_sections_label() {
+    lv_obj_t *action_btn_label = lv_obj_get_child(run_time_open_btn, NULL);
+    if(action_btn_label) {
+        Serial.println("Updating run time open button label with sections count: " + String(runTimeSchema.nrOfSections));
+        lv_label_set_text_fmt(action_btn_label, "Go (%d) >", runTimeSchema.nrOfSections/2);
+    }
+}
+
+void runcoach_set_run_time_open_btn_status(bool enabled) {
+    if(!run_time_open_btn) {
+        return;
+    }
+    if(enabled) {
+        lv_obj_set_style_local_bg_opa(run_time_open_btn, LV_BTN_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_COVER);
+        lv_obj_set_style_local_bg_color(run_time_open_btn, LV_BTN_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_WHITE);
+    } else {
+        lv_obj_set_style_local_bg_opa(run_time_open_btn, LV_BTN_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_COVER);
+        lv_obj_set_style_local_bg_color(run_time_open_btn, LV_BTN_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_GRAY);
+    }
+}
+
 void runcoach_app_gui_setup( uint32_t tile_num ) {
     runcoach_initialize_styles(tile_num);
     runcoach_main_screen_container = wf_add_container( runcoach_app_main_tile, LV_LAYOUT_COLUMN_MID, LV_FIT_PARENT, LV_FIT_PARENT, false );
     schema_setup(runcoach_main_screen_container);
-    run_time_bar_setup(runcoach_main_screen_container);
     run_time_screen_setup(runcoach_app_main_tile);
     runcoach_update_labels();
 }

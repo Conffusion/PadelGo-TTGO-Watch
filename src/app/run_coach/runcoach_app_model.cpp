@@ -5,39 +5,77 @@
 SchemaDef schemaDef= { .runTime = 180, .walkTime = 180, .repeat = 5};
 RunTimeSchema runTimeSchema = { .sections = nullptr, .status=STOPPED, .currSectionIdx=-1, .nrOfSections=0 };
 
-/* Frees the memory allocated for the sections in the run schema. */
-static void runcoach_freeRunSchemaSections() {
-    if(runTimeSchema.sections == nullptr) {
-        return;
-    }
-    for(int idx = 0; idx < runTimeSchema.nrOfSections; idx++) {
-        if(runTimeSchema.sections[idx].actionLabel) {
-            free(runTimeSchema.sections[idx].actionLabel);
-            runTimeSchema.sections[idx].actionLabel = nullptr;
-        }
-    }
-    delete[] runTimeSchema.sections;
-    runTimeSchema.sections = nullptr;
-    runTimeSchema.nrOfSections = 0;
-}
-
 static char* runcoach_buildActionLabel(const char* action, int currentRepeat, int totalRepeats) {
     char* label = (char*)malloc(24);
     if(label == nullptr) {
-        return (char*)"";
+        return nullptr;
     }
     snprintf(label, 24, "%s (%d/%d)", action, currentRepeat, totalRepeats);
     return label;
 }
 
-void runcoach_calculateRunSchema() {
-    runcoach_freeRunSchemaSections();
-    runTimeSchema.sections = new Section[schemaDef.repeat*2];
-    runTimeSchema.nrOfSections = schemaDef.repeat * 2;
-    for (int i=0;i<schemaDef.repeat;i++) {
-        runTimeSchema.sections[i*2]= { .action=RUN, .actionLabel=runcoach_buildActionLabel("Run", i + 1, schemaDef.repeat), .duration= schemaDef.runTime};
-        runTimeSchema.sections[i*2+1]= {.action=WALK, .actionLabel=runcoach_buildActionLabel("Walk", i + 1, schemaDef.repeat), .duration=schemaDef.walkTime};
-    };
+
+void runcoach_appendRunSchema() {
+    int additionalSections = schemaDef.repeat * 2;
+    if(additionalSections <= 0) {
+        return;
+    }
+
+    short oldCount = runTimeSchema.nrOfSections;
+    short newCount = oldCount + additionalSections;
+    Section* oldSections = runTimeSchema.sections;
+    Section* newSections = new Section[newCount];
+
+    for(short idx = 0; idx < oldCount; idx++) {
+        newSections[idx].action = oldSections[idx].action;
+        newSections[idx].duration = oldSections[idx].duration;
+        newSections[idx].actionLabel = nullptr;
+    }
+
+    for(int i = 0; i < schemaDef.repeat; i++) {
+        short baseIdx = oldCount + i * 2;
+        newSections[baseIdx].action = RUN;
+        newSections[baseIdx].duration = schemaDef.runTime;
+        newSections[baseIdx].actionLabel = nullptr;
+
+        newSections[baseIdx + 1].action = WALK;
+        newSections[baseIdx + 1].duration = schemaDef.walkTime;
+        newSections[baseIdx + 1].actionLabel = nullptr;
+    }
+
+    int totalRepeats = newCount / 2;
+    for(short idx = 0; idx < newCount; idx++) {
+        const char* actionName = (newSections[idx].action == RUN) ? "Run" : "Walk";
+        int repeatNumber = (idx / 2) + 1;
+        newSections[idx].actionLabel = runcoach_buildActionLabel(actionName, repeatNumber, totalRepeats);
+    }
+
+    if(oldSections != nullptr) {
+        for(short idx = 0; idx < oldCount; idx++) {
+            if(oldSections[idx].actionLabel) {
+                free(oldSections[idx].actionLabel);
+                oldSections[idx].actionLabel = nullptr;
+            }
+        }
+        delete[] oldSections;
+    }
+
+    runTimeSchema.sections = newSections;
+    runTimeSchema.nrOfSections = newCount;
+}
+
+void runcoach_freeRunSchemaSections() {
+    if(runTimeSchema.sections != nullptr) {
+        for(short idx = 0; idx < runTimeSchema.nrOfSections; idx++) {
+            if(runTimeSchema.sections[idx].actionLabel) {
+                free(runTimeSchema.sections[idx].actionLabel);
+                runTimeSchema.sections[idx].actionLabel = nullptr;
+            }
+        }
+        delete[] runTimeSchema.sections;
+        runTimeSchema.sections = nullptr;
+        runTimeSchema.nrOfSections = 0;
+    }
 }
 
 void runcoach_model_init() {
@@ -48,13 +86,12 @@ void runcoach_model_init() {
     runTimeSchema.currSectionIdx=-1;
     runTimeSchema.currSectionStart=0;
     runTimeSchema.currSectionPauzedOn=0;
-    runcoach_calculateRunSchema();
+    runcoach_freeRunSchemaSections();
 }
 
 /* Calculates the run schema and launches the timer */
 void runcoach_launch_schema() {
     Serial.println("IN runcoach_launch_schema");
-    runcoach_calculateRunSchema();
     runTimeSchema.status=RUNNING;
     runTimeSchema.currSectionIdx=0;
     runTimeSchema.currSectionStart=time(0);

@@ -46,8 +46,8 @@ void runcoach_runtime_update_task(lv_task_t *task) {
             // schema finished
             runTimeSchema.currSectionIdx=-1;
             runTimeSchema.status=STOPPED;
-            motor_vibe(300);
             runcoach_update_labels();
+            motor_vibe(300);
             if(task) {
                 lv_task_del(task);
             }
@@ -56,10 +56,12 @@ void runcoach_runtime_update_task(lv_task_t *task) {
         } else {
             // start next section
             runTimeSchema.currSectionStart=time(0);
+            runcoach_update_labels();
             motor_vibe(100);
         }
+    } else {
+        runcoach_update_labels();
     }
-    runcoach_update_labels();
 }
 
 static void runcoach_stop_runtime_task() {
@@ -79,6 +81,9 @@ static void runcoach_start_runtime_task() {
 void enter_run_time_screen_event_cb( lv_obj_t * obj, lv_event_t event ) {
     switch( event ) {
         case( LV_EVENT_CLICKED ):
+            if(runTimeSchema.nrOfSections <= 0) {
+                return;
+            }
             runcoach_show_runtime_screen();
             break;
     }
@@ -88,6 +93,25 @@ void exit_run_time_screen_event_cb( lv_obj_t * obj, lv_event_t event ) {
     switch( event ) {
         case( LV_EVENT_CLICKED ):
             runcoach_show_main_screen();
+            break;
+    }
+}
+
+void enter_schema_add_event_cb( lv_obj_t * obj, lv_event_t event ) {
+    switch( event ) {
+        case( LV_EVENT_CLICKED ):
+            // Append runtime sections from current run/walk/repeat values
+            runcoach_stop_runtime_task();
+            runcoach_appendRunSchema();
+            runTimeSchema.status = STOPPED;
+            runTimeSchema.currSectionIdx = -1;
+            runTimeSchema.remainingTime = (runTimeSchema.nrOfSections > 0 && runTimeSchema.sections)
+                ? runTimeSchema.sections[0].duration
+                : 0;
+            runcoach_update_labels();
+            runcoach_update_sections_label();
+            runcoach_set_run_time_open_btn_status(true);
+            Serial.println("RunCoach sections added");
             break;
     }
 }
@@ -172,21 +196,14 @@ void runcoach_app_main_setup( uint32_t tile_num ) {
     runcoach_app_gui_setup(tile_num); // Ensure setup is called to initialize styles
 }
 
-void enter_runcoach_app_reset_event_cb( lv_obj_t * obj, lv_event_t event ) {
-    switch( event ) {
-        case( LV_EVENT_CLICKED ):       
-            runcoach_stop_runtime_task();
-            runcoach_model_init();
-            runcoach_update_labels();
-    }
-}
-
 void exit_runcoach_app_main_event_cb( lv_obj_t * obj, lv_event_t event ) {
     switch( event ) {
         case( LV_EVENT_CLICKED ):
             runcoach_stop_runtime_task();
             // Reset model to default values before exiting
             runcoach_model_init();
+            runcoach_update_labels();
+            runcoach_update_sections_label();
             mainbar_jump_back();
             break;
     }

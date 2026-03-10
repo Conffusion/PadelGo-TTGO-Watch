@@ -10,20 +10,15 @@
     void enter_schema_repeat_plus_event_cb( lv_obj_t * obj, lv_event_t event );
 
     void enter_run_time_screen_event_cb( lv_obj_t * obj, lv_event_t event );
+    void enter_schema_add_event_cb( lv_obj_t * obj, lv_event_t event );
     void exit_run_time_screen_event_cb( lv_obj_t * obj, lv_event_t event );
     void enter_run_time_action_event_cb( lv_obj_t * obj, lv_event_t event );
 
     void enter_runcoach_app_reset_event_cb( lv_obj_t * obj, lv_event_t event );
     void exit_runcoach_app_main_event_cb( lv_obj_t * obj, lv_event_t event );
 
-    extern lv_obj_t *schema_run_min_btn;
-    extern lv_obj_t *schema_run_plus_btn;
     extern lv_obj_t *schema_run_time_label;
-    extern lv_obj_t *schema_walk_min_btn;
-    extern lv_obj_t *schema_walk_plus_btn;
     extern lv_obj_t *schema_walk_time_label;
-    extern lv_obj_t *schema_repeat_min_btn;
-    extern lv_obj_t *schema_repeat_plus_btn;
     extern lv_obj_t *schema_repeat_value_label;
     extern lv_obj_t *run_time_action_label;
     extern lv_obj_t *run_time_clock_label;
