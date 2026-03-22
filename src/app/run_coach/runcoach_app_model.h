@@ -33,6 +33,8 @@ typedef struct  {
   Action action;
   char* actionLabel;
   short duration;
+  // number of footsteps done in this section, only used for RUN action
+  uint32_t steps;
 } Section;
 
 /* A RunSchema contains a sequence of Section's to perform. */
@@ -40,6 +42,7 @@ typedef struct {
   Section* sections;
   RunTimeStatus status;
   short currSectionIdx;
+  short lastRunSectionIdx;
   short nrOfSections;
   /* Remaining time in the current section expressed in seconds. */
   short remainingTime;
@@ -48,6 +51,10 @@ typedef struct {
   time_t currSectionStart;
   /* The time the current section was pauzed. */
   time_t currSectionPauzedOn;
+  /* The stepcounter value when the current section started, used to calculate steps in current section. */
+  uint32_t currSectionStepsStart;
+  /* The stepcounter value when the current section was pauzed. */
+  uint32_t currSectionStepsPauzedOn;
 } RunTimeSchema;
 
 extern SchemaDef schemaDef;

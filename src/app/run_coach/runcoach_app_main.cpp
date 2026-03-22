@@ -12,6 +12,7 @@
 #include "gui/mainbar/mainbar.h"
 #include "gui/statusbar.h"
 
+#include "hardware/motion.h"
 #include <hardware/ble/gadgetbridge.h>
 static lv_task_t *runcoach_runtime_task = NULL;
 
@@ -20,7 +21,7 @@ static short TIME_INCREASE=30;
 // Forward declaration
 void runcoach_runtime_update_task(lv_task_t *task);
 
-static short remaining_time() {
+static short runcoach_remaining_time() {
     short remaining_seconds = 0;
     if(runTimeSchema.currSectionIdx>=0) {
         time_t now = time(0);
@@ -33,12 +34,21 @@ static short remaining_time() {
     }
     return remaining_seconds;
 }
+static void runcoach_update_current_section_steps() {
+    if(runTimeSchema.currSectionIdx>=0 && runTimeSchema.sections) {
+        Section& currentSection = runTimeSchema.sections[runTimeSchema.currSectionIdx];
+        if(currentSection.action == RUN) {
+            currentSection.steps = bma_get_stepcounter() - runTimeSchema.currSectionStepsStart;
+        }
+    }    
+}
 
 /**
  * Is called every second when the run schema is running to update the remaining time label.
  */
 void runcoach_runtime_update_task(lv_task_t *task) {
-    runTimeSchema.remainingTime = remaining_time();
+    runTimeSchema.remainingTime = runcoach_remaining_time();
+    runcoach_update_current_section_steps();
     if(runTimeSchema.status == RUNNING && runTimeSchema.remainingTime<=0) {
         // move to next section
         runTimeSchema.currSectionIdx++;
@@ -56,6 +66,11 @@ void runcoach_runtime_update_task(lv_task_t *task) {
         } else {
             // start next section
             runTimeSchema.currSectionStart=time(0);
+            runTimeSchema.currSectionStepsStart=bma_get_stepcounter();
+            if(runTimeSchema.sections[runTimeSchema.currSectionIdx].action == RUN) {
+                runTimeSchema.lastRunSectionIdx=runTimeSchema.currSectionIdx;
+            }
+
             runcoach_update_labels();
             motor_vibe(100);
         }

@@ -1,9 +1,11 @@
 #include "runcoach_app_model.h"
 #include "lvgl.h"
 #include <HardwareSerial.h>
+#include "hardware/motion.h"
 
 SchemaDef schemaDef= { .runTime = 180, .walkTime = 180, .repeat = 5};
-RunTimeSchema runTimeSchema = { .sections = nullptr, .status=STOPPED, .currSectionIdx=-1, .nrOfSections=0 };
+RunTimeSchema runTimeSchema = { .sections = nullptr, .status=STOPPED, .currSectionIdx=-1, .lastRunSectionIdx=-1, .nrOfSections=0, 
+    .remainingTime=0, .currSectionStart=0, .currSectionPauzedOn=0, .currSectionStepsStart=0, .currSectionStepsPauzedOn=0 };
 
 static char* runcoach_buildActionLabel(const char* action, int currentRepeat, int totalRepeats) {
     char* label = (char*)malloc(24);
@@ -89,17 +91,22 @@ void runcoach_model_init() {
     runcoach_freeRunSchemaSections();
 }
 
-/* Calculates the run schema and launches the timer */
 void runcoach_launch_schema() {
     Serial.println("IN runcoach_launch_schema");
     runTimeSchema.status=RUNNING;
     runTimeSchema.currSectionIdx=0;
+    if(runTimeSchema.sections[runTimeSchema.currSectionIdx].action == RUN) {
+        runTimeSchema.lastRunSectionIdx=0;
+        runTimeSchema.sections[runTimeSchema.currSectionIdx].steps=0;
+    }
     runTimeSchema.currSectionStart=time(0);
+    runTimeSchema.currSectionStepsStart=bma_get_stepcounter();
 }
 
 void runcoach_pauze_schema() {
     runTimeSchema.status=PAUZING;
     runTimeSchema.currSectionPauzedOn=time(0);
+    runTimeSchema.currSectionStepsPauzedOn=bma_get_stepcounter();
 }
 
 /* status changed from PAUZING to RUNNING */
@@ -107,5 +114,6 @@ void runcoach_continue_schema() {
     // increase the start time with the number of pauzed seconds
     double pauzed_seconds = difftime(time(0),runTimeSchema.currSectionPauzedOn);
     runTimeSchema.currSectionStart=runTimeSchema.currSectionStart+pauzed_seconds;
+    runTimeSchema.currSectionStepsStart += bma_get_stepcounter() - runTimeSchema.currSectionStepsPauzedOn;
     runTimeSchema.status=RUNNING;
 }

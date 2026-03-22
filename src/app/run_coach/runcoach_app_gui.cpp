@@ -23,6 +23,7 @@ lv_obj_t *schema_repeat_value_label=NULL;
 lv_obj_t *schema_sections_value_label=NULL;
 lv_obj_t *run_time_action_label=NULL;
 lv_obj_t *run_time_clock_label=NULL;
+lv_obj_t *run_time_steps_label=NULL;
 lv_obj_t *run_time_action_btn=NULL;
 static lv_obj_t *run_time_open_btn=NULL;
 static lv_obj_t *runcoach_main_screen_container = NULL;
@@ -159,7 +160,7 @@ static void schema_setup(lv_obj_t * parent) {
     |      <action>    |
     |                  |
     |      00:00       |
-    |                  |
+    |  <steps>         |
     |  <btn>  <Back>   | // run_time bar ; btn=Setup|Start|Pauze
     |__________________|
  */
@@ -167,13 +168,17 @@ static void run_time_screen_setup(lv_obj_t * parent) {
     runcoach_runtime_screen_container = wf_add_container(parent, LV_LAYOUT_COLUMN_MID, LV_FIT_PARENT, LV_FIT_PARENT, false);
     lv_obj_align(runcoach_runtime_screen_container, NULL, LV_ALIGN_IN_TOP_LEFT, 0, 0);
 
-    run_time_action_label = wf_add_label(runcoach_runtime_screen_container, "---",&large_label_style);
+    run_time_action_label = wf_add_label(runcoach_runtime_screen_container, "---",&medium_label_style);
     lv_obj_set_width(run_time_action_label, LV_HOR_RES);
     lv_label_set_align(run_time_action_label, LV_LABEL_ALIGN_CENTER);
 
     run_time_clock_label = wf_add_label(runcoach_runtime_screen_container, "00:00", &large_label_style);
     lv_obj_set_width(run_time_clock_label, LV_HOR_RES);
     lv_label_set_align(run_time_clock_label, LV_LABEL_ALIGN_CENTER);
+
+    run_time_steps_label = wf_add_label(runcoach_runtime_screen_container, "Steps: 0", &medium_label_style);
+    lv_obj_set_width(run_time_steps_label, LV_HOR_RES);
+    lv_label_set_align(run_time_steps_label, LV_LABEL_ALIGN_CENTER);
 
     lv_obj_t *run_time_button_container = wf_add_container(runcoach_runtime_screen_container, LV_LAYOUT_PRETTY_MID, LV_FIT_PARENT, LV_FIT_TIGHT, false);
     run_time_action_btn = wf_add_button_c(run_time_button_container, "Start", LV_HOR_RES/3 - 8, LV_VER_RES/6, enter_run_time_action_event_cb);
@@ -204,8 +209,10 @@ void runcoach_update_labels() {
     if(run_time_action_label && run_time_clock_label && run_time_action_btn) {
         if(runTimeSchema.currSectionIdx>=0 && runTimeSchema.sections != nullptr) {
             lv_label_set_text(run_time_action_label, runTimeSchema.sections[runTimeSchema.currSectionIdx].actionLabel);
+            lv_label_set_text_fmt(run_time_steps_label, "Steps: %d", runTimeSchema.sections[runTimeSchema.lastRunSectionIdx].steps);
         } else {
             lv_label_set_text(run_time_action_label,"---");
+            lv_label_set_text(run_time_steps_label,"Steps: 0");
         }
         to_time_label(runTimeSchema.remainingTime,remainingTimeLabel);
         lv_label_set_text(run_time_clock_label,remainingTimeLabel);
