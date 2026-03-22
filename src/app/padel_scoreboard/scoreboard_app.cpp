@@ -22,7 +22,7 @@ LV_IMG_DECLARE(scoreboard_app_64px);
 /*
  * automatic register the app setup function with explicit call in main.cpp
  */
-static int registed = app_autocall_function( &scoreboard_app_setup, 15 );           /** @brief app autocall function */
+static int registed = app_autocall_function( &scoreboard_app_setup, 4 );           /** @brief app autocall function */
 /*
  * setup routine for example app
  */
