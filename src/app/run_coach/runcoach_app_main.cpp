@@ -49,32 +49,36 @@ static void runcoach_update_current_section_steps() {
 void runcoach_runtime_update_task(lv_task_t *task) {
     runTimeSchema.remainingTime = runcoach_remaining_time();
     runcoach_update_current_section_steps();
-    if(runTimeSchema.status == RUNNING && runTimeSchema.remainingTime<=0) {
-        // move to next section
-        runTimeSchema.currSectionIdx++;
-        if(runTimeSchema.currSectionIdx>=runTimeSchema.nrOfSections) {
-            // schema finished
-            runTimeSchema.currSectionIdx=-1;
-            runTimeSchema.status=STOPPED;
-            runcoach_update_labels();
-            motor_vibe(300);
-            if(task) {
-                lv_task_del(task);
-            }
-            runcoach_runtime_task = NULL;
-            return;
-        } else {
-            // start next section
-            runTimeSchema.currSectionStart=time(0);
-            runTimeSchema.currSectionStepsStart=bma_get_stepcounter();
-            if(runTimeSchema.sections[runTimeSchema.currSectionIdx].action == RUN) {
-                runTimeSchema.lastRunSectionIdx=runTimeSchema.currSectionIdx;
-            }
+    if(runTimeSchema.status == RUNNING) { 
+        if(runTimeSchema.remainingTime<=0) {
+            // move to next section
+            runTimeSchema.currSectionIdx++;
+            if(runTimeSchema.currSectionIdx>=runTimeSchema.nrOfSections) {
+                // schema finished
+                runTimeSchema.currSectionIdx=-1;
+                runTimeSchema.status=STOPPED;
+                runcoach_update_labels();
+                motor_vibe(300);
+                if(task) {
+                    lv_task_del(task);
+                }
+                runcoach_runtime_task = NULL;
+                return;
+            } else {
+                // start next section
+                runTimeSchema.currSectionStart=time(0);
+                runTimeSchema.currSectionStepsStart=bma_get_stepcounter();
+                if(runTimeSchema.sections[runTimeSchema.currSectionIdx].action == RUN) {
+                    runTimeSchema.lastRunSectionIdx=runTimeSchema.currSectionIdx;
+                }
 
-            runcoach_update_labels();
-            motor_vibe(100);
+                runcoach_update_labels();
+                motor_vibe(100);
+            }
+        } else if(runTimeSchema.remainingTime<=10) {
+            // vibrate when 10 seconds or less remaining in current section
+            motor_vibe(30);
         }
-    } else {
         runcoach_update_labels();
     }
 }
