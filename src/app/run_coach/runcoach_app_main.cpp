@@ -1,12 +1,14 @@
 #include "config.h"
 #include <TTGO.h>
 #include "hardware/motor.h"
+#include "hardware/sound.h"
 
 #include "runcoach_app.h"
 #include "runcoach_app_main.h"
 #include "runcoach_app_model.h"
 #include "runcoach_app_gui.h"
 
+#include "gui/sound/piep.h"
 #include "gui/mainbar/app_tile/app_tile.h"
 #include "gui/mainbar/main_tile/main_tile.h"
 #include "gui/mainbar/mainbar.h"
@@ -51,6 +53,9 @@ void runcoach_runtime_update_task(lv_task_t *task) {
     runcoach_update_current_section_steps();
     if(runTimeSchema.status == RUNNING) { 
         if(runTimeSchema.remainingTime<=0) {
+            if ( sound_get_available() && sound_get_enabled_config() ) {
+                sound_play_progmem_wav( piep_wav, piep_wav_len );
+            }
             // move to next section
             runTimeSchema.currSectionIdx++;
             if(runTimeSchema.currSectionIdx>=runTimeSchema.nrOfSections) {
@@ -71,9 +76,8 @@ void runcoach_runtime_update_task(lv_task_t *task) {
                 if(runTimeSchema.sections[runTimeSchema.currSectionIdx].action == RUN) {
                     runTimeSchema.lastRunSectionIdx=runTimeSchema.currSectionIdx;
                 }
-
                 runcoach_update_labels();
-                motor_vibe(100);
+                motor_vibe(200);
             }
         } else if(runTimeSchema.remainingTime<=10) {
             // vibrate when 10 seconds or less remaining in current section
