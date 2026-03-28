@@ -1,6 +1,6 @@
-#include "runcoach_app_gui.h"
 #include "runcoach_app_main.h"
 #include "runcoach_app_model.h"
+#include "runcoach_app_gui.h"
 #include "hardware/motor.h"
 
 #include "gui/mainbar/app_tile/app_tile.h"
@@ -99,13 +99,13 @@ static void schema_run_bar_setup(lv_obj_t * parent, int height) {
     lv_obj_t * schema_run_container = wf_add_container(parent, LV_LAYOUT_PRETTY_MID, LV_FIT_PARENT, LV_FIT_TIGHT, false);
     lv_obj_align(schema_run_container, NULL, LV_ALIGN_IN_TOP_MID, 0, 0);
 
+    schema_run_label_btn = wf_add_button_c(schema_run_container, "R",LV_HOR_RES/9, height, enter_schema_run_min_event_cb);
+    lv_obj_add_style(schema_run_label_btn, LV_LABEL_PART_MAIN, &medium_label_style);
+
     schema_run_min_btn = wf_add_button_c(schema_run_container,"-",LV_HOR_RES/7, height, enter_schema_run_min_event_cb);
     lv_obj_add_style(schema_run_min_btn, LV_LABEL_PART_MAIN, &medium_label_style);
     lv_obj_set_style_local_bg_opa(schema_run_min_btn, LV_BTN_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_COVER);
     lv_obj_set_style_local_bg_color(schema_run_min_btn, LV_BTN_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_RED);
-
-    schema_run_label_btn = wf_add_button_c(schema_run_container, "r",LV_HOR_RES/9, height, enter_schema_run_min_event_cb);
-    lv_obj_add_style(schema_run_label_btn, LV_LABEL_PART_MAIN, &medium_label_style);
 
     schema_run_time_label = wf_add_button_c(schema_run_container, "00:00", LV_HOR_RES/3, height, enter_schema_run_plus_event_cb);
     lv_obj_add_style(schema_run_time_label, LV_LABEL_PART_MAIN, &medium_label_style);
@@ -121,13 +121,13 @@ static void schema_walk_bar_setup(lv_obj_t * parent, int height) {
     lv_obj_t * schema_walk_container = wf_add_container(parent, LV_LAYOUT_PRETTY_MID, LV_FIT_PARENT, LV_FIT_TIGHT, false);
     lv_obj_align(schema_walk_container, NULL, LV_ALIGN_IN_TOP_MID, 0, 0);
 
+    schema_walk_label_btn = wf_add_button_c(schema_walk_container, "W",LV_HOR_RES/9, height, enter_schema_walk_min_event_cb);
+    lv_obj_add_style(schema_walk_label_btn, LV_LABEL_PART_MAIN, &medium_label_style);
+
     schema_walk_min_btn = wf_add_button_c(schema_walk_container,"-",LV_HOR_RES/7, height, enter_schema_walk_min_event_cb);
     lv_obj_add_style(schema_walk_min_btn, LV_LABEL_PART_MAIN, &medium_label_style);
     lv_obj_set_style_local_bg_opa(schema_walk_min_btn, LV_BTN_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_COVER);
     lv_obj_set_style_local_bg_color(schema_walk_min_btn, LV_BTN_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_RED);
-
-    schema_walk_label_btn = wf_add_button_c(schema_walk_container, "w",LV_HOR_RES/9, height, enter_schema_walk_min_event_cb);
-    lv_obj_add_style(schema_walk_label_btn, LV_LABEL_PART_MAIN, &medium_label_style);
 
     schema_walk_time_label = wf_add_button_c(schema_walk_container, "00:00", LV_HOR_RES/3, height, enter_schema_walk_plus_event_cb);
     lv_obj_add_style(schema_walk_time_label, LV_LABEL_PART_MAIN, &medium_label_style);
@@ -143,14 +143,14 @@ static void schema_repeat_bar_setup(lv_obj_t * parent, int height) {
     lv_obj_t * schema_repeat_container = wf_add_container(parent, LV_LAYOUT_PRETTY_MID, LV_FIT_PARENT, LV_FIT_TIGHT, false);
     lv_obj_align(schema_repeat_container, NULL, LV_ALIGN_IN_TOP_MID, 0, 0);
 
+    schema_repeat_label_btn = wf_add_button_c(schema_repeat_container, "X",LV_HOR_RES/9, height, enter_schema_repeat_min_event_cb);
+    lv_obj_add_style(schema_repeat_label_btn, LV_LABEL_PART_MAIN, &medium_label_style);
+
     schema_repeat_min_btn = wf_add_button_c(schema_repeat_container,"-",LV_HOR_RES/7, height, enter_schema_repeat_min_event_cb);
     lv_obj_add_style(schema_repeat_min_btn, LV_LABEL_PART_MAIN, &medium_label_style);
     lv_obj_set_style_local_bg_opa(schema_repeat_min_btn, LV_BTN_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_COVER);
     lv_obj_set_style_local_bg_color(schema_repeat_min_btn, LV_BTN_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_RED);
-
-    schema_repeat_label_btn = wf_add_button_c(schema_repeat_container, "X",LV_HOR_RES/9, height, enter_schema_repeat_min_event_cb);
-    lv_obj_add_style(schema_repeat_label_btn, LV_LABEL_PART_MAIN, &medium_label_style);
-
+    
     schema_repeat_value_label = wf_add_button_c(schema_repeat_container, "0", LV_HOR_RES/3, height, enter_schema_repeat_plus_event_cb);
     lv_obj_add_style(schema_repeat_value_label, LV_LABEL_PART_MAIN, &medium_label_style);
     //lv_obj_set_width(schema_repeat_value_label, LV_HOR_RES/5);
@@ -184,8 +184,8 @@ static void schema_button_bar_setup(lv_obj_t * parent) {
     |_________|_____|_______|_____|
     |  <Exit>   <+>      <Go (0)> | // schema buttonbar
     |_____________________________|
-
-*/
+    
+    */
 static void schema_setup(lv_obj_t * parent) {
     int height = LV_VER_RES/6;
     lv_obj_t * schema_container = wf_add_container(parent, LV_LAYOUT_PRETTY_MID, LV_FIT_PARENT, LV_FIT_TIGHT, false);
@@ -195,9 +195,9 @@ static void schema_setup(lv_obj_t * parent) {
     schema_repeat_bar_setup(schema_container, height);
     schema_button_bar_setup(schema_container);
 }
-
-
-/*
+    
+    
+    /*
      ___________________
     |      <action>    |
     |                  |
