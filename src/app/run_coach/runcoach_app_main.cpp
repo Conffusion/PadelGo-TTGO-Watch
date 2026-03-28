@@ -143,8 +143,8 @@ void enter_schema_run_min_event_cb( lv_obj_t * obj, lv_event_t event ) {
     switch( event ) {
         case( LV_EVENT_CLICKED ):
             Serial.println("run decrease pressed");
-            if(schemaDef.runTime>30) {
-                schemaDef.runTime=schemaDef.runTime-TIME_INCREASE;
+            if(schemaDef.runTime>=TIME_INCREASE) {
+                schemaDef.runTime-=TIME_INCREASE;
                 runcoach_update_labels();
             }
     }
@@ -161,8 +161,8 @@ void enter_schema_walk_min_event_cb( lv_obj_t * obj, lv_event_t event ){
     switch( event ) {
         case( LV_EVENT_CLICKED ):
             Serial.println("walk decrease pressed");
-            if(schemaDef.walkTime>30) {
-                schemaDef.walkTime=schemaDef.walkTime-TIME_INCREASE;
+            if(schemaDef.walkTime>=TIME_INCREASE) {
+                schemaDef.walkTime-=TIME_INCREASE;
                 runcoach_update_labels();
             }
     }
@@ -171,7 +171,7 @@ void enter_schema_walk_plus_event_cb( lv_obj_t * obj, lv_event_t event ){
     switch( event ) {
         case( LV_EVENT_CLICKED ):
             Serial.println("walk increase pressed");
-            schemaDef.walkTime=schemaDef.walkTime+TIME_INCREASE;
+            schemaDef.walkTime+=TIME_INCREASE;
             runcoach_update_labels();
     }
 }
@@ -179,8 +179,8 @@ void enter_schema_repeat_min_event_cb( lv_obj_t * obj, lv_event_t event ){
     switch( event ) {
         case( LV_EVENT_CLICKED ):
             Serial.println("repeat decrease pressed");
-            if(schemaDef.repeat>0) {
-                schemaDef.repeat=schemaDef.repeat-1;
+            if(schemaDef.repeat>=1) {
+                schemaDef.repeat-=1;
                 runcoach_update_labels();
             }
     }
@@ -189,7 +189,7 @@ void enter_schema_repeat_plus_event_cb( lv_obj_t * obj, lv_event_t event ){
     switch( event ) {
         case( LV_EVENT_CLICKED ):
             Serial.println("repeat increase pressed");
-            schemaDef.repeat=schemaDef.repeat+1;
+            schemaDef.repeat+=1;
             runcoach_update_labels();
     }
 }
